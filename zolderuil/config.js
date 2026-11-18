@@ -21,7 +21,13 @@ window.UIL_CONFIG = {
   maxPixelRatio: 1.5,
 
   // Hoe groot de uil is, als deel van de schermhoogte.
-  uilGrootte: 0.46,
+  // De indeling past zich vanzelf aan: staand (portrait) of liggend scherm.
+  uilGrootte: 0.46,        // liggend scherm
+  uilGrootteStaand: 0.6,   // staand scherm: lekker groot
+
+  // Altijd als staand scherm tonen (ook in een liggend browservenster).
+  // Op de Pi zelf draai je het beeld via het besturingssysteem (zie README).
+  forceerStaand: false,
 
   // Kans op een zeldzame verrassing (muisje dat langs rent),
   // gemiddeld eens per zoveel minuten.

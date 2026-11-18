@@ -26,6 +26,7 @@ Je kunt opties achter de URL zetten:
 | `index.html?datum=2026-12-24&tijd=17:00` | Andere dag en tijd (handig voor de maanfase) |
 | `index.html?snel=120` | De klok loopt 120x zo snel; zie de schemering voorbijkomen |
 | `index.html?debug` | Debugscherm direct aan |
+| `index.html?staand` | Toon als staand 9:16-scherm (portrait), ook in een liggend venster |
 
 Toetsen (vooral voor het testen):
 
@@ -58,6 +59,21 @@ Toetsen (vooral voor het testen):
   pixels en de uil hupt af en toe naar een andere plek, allebei tegen inbranden.
 - **Zeldzame verrassing**: een muisje dat over de balk rent (gemiddeld eens per 40 minuten).
 
+## Staand of liggend scherm
+
+De indeling past zich vanzelf aan de beeldverhouding aan:
+
+- **Staand (portrait)**: de uil is groot en zit laag op de balk, met een raampje rechtsboven
+  achter zijn kop. Zijn grootte stel je in met `uilGrootteStaand` in `config.js`
+  (standaard 0.6 van de schermhoogte).
+- **Liggend**: de uil zit in het midden en het raam staat ernaast (`uilGrootte`).
+
+Op je Mac kun je staand testen met `?staand`, of door je browservenster smal te maken.
+Op de Pi draai je het beeld via het besturingssysteem, zodat de browser gewoon een staand
+scherm ziet. Op Raspberry Pi OS (Bookworm) kan dat via *Screen Configuration* →
+*Orientation*, of met `wlr-randr --output HDMI-A-1 --transform 90`. In fase 3 zet ik dat
+automatisch goed.
+
 ## Instellingen
 
 Alles staat in [`config.js`](config.js): locatie, helderheid dag/nacht, maximale fps,
@@ -80,7 +96,7 @@ zolderuil/
 
 - **Pi**: ik ga uit van een Pi 4 of 5. Bij een Zero 2 W zet je `maxFps` op 20 en
   `maxPixelRatio` op 1. Als dat te zwaar blijkt, maak ik een lichtere versie.
-- **Richting**: het scherm kijkt naar buiten, vandaar het dimmen 's nachts.
+- **Richting**: het scherm kijkt naar buiten, vandaar het dimmen 's nachts. Het hangt staand.
 - **Stijl**: warm prentenboek.
 
 ## Volgende fases

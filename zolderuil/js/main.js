@@ -24,15 +24,21 @@
   function jump(hours) { simBase = simNow().valueOf() + hours * 3600000; realBase = performance.now(); }
 
   // ---------- scherm ----------
-  let W = 1778, H = 1000, scale = 1, room = null;
+  let W = 1778, H = 1000, scale = 1, room = null, portrait = false;
+  const forcePortrait = qs.has('staand') || CFG.forceerStaand;
   function resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, CFG.maxPixelRatio || 1);
-    canvas.width = Math.round(innerWidth * dpr); canvas.height = Math.round(innerHeight * dpr);
+    // ?staand: simuleer een staand 9:16-scherm in een liggend browservenster (om te testen)
+    let vw = innerWidth, vh = innerHeight;
+    if (forcePortrait && vw / vh > 9 / 16) vw = Math.round(vh * 9 / 16);
+    canvas.style.width = vw + 'px'; canvas.style.height = vh + 'px';
+    canvas.width = Math.round(vw * dpr); canvas.height = Math.round(vh * dpr);
     owlCanvas.width = skyCanvas.width = canvas.width; owlCanvas.height = skyCanvas.height = canvas.height;
     H = 1000; scale = canvas.height / H; W = canvas.width / scale;
     room = UilScene.renderRoom(W, H, scale);
     brain.W = W; brain.H = H;
-    brain.moveLimit = Math.max(40, Math.min(150, room.layout.win.x - W / 2 - 170));
+    portrait = W < H;
+    brain.moveLimit = portrait ? W * 0.05 : Math.max(40, Math.min(150, room.layout.win.x - W / 2 - 170));
     brain.owlX = W / 2;
   }
 
@@ -217,7 +223,7 @@ toetsen: 1 rondkijken  2 kopdraai  3 poetsen  4 rekken
     UilScene.drawLantern(ctx, L, t, lit);
 
     // 3) uil (+ muisje) apart, iets minder verduisterd, zodat je hem altijd ziet
-    const S = (H * (CFG.uilGrootte || 0.46)) / 400;
+    const S = (H * (portrait ? (CFG.uilGrootteStaand || 0.6) : (CFG.uilGrootte || 0.46))) / 400;
     const owlPos = { x: W / 2, y: L.beamY + 4 };
     octx.setTransform(1, 0, 0, 1, 0, 0);
     octx.clearRect(0, 0, owlCanvas.width, owlCanvas.height);

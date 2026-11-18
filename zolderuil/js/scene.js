@@ -20,6 +20,18 @@
   // Alles wordt getekend in een wereld van 1000 eenheden hoog; de breedte
   // volgt de beeldverhouding van het scherm.
   function layout(W, H) {
+    if (W < H) { // staand scherm: uil groot en laag, rond raampje rechtsboven
+      const w = W * 0.36;
+      const win = { cx: W * 0.73, cy: 0, w, h: w * 1.2 };
+      win.x = win.cx - w / 2; win.y = 118; win.cy = win.y + win.h / 2;
+      return {
+        W, H, portrait: true,
+        beamY: H * 0.86, beamH: 74,
+        win,
+        postL: W * 0.035, postR: W * 0.965, postW: 52,
+        lantern: { x: W * 0.17, y: H * 0.27 },
+      };
+    }
     const win = { cx: W * 0.79, cy: H * 0.3, w: Math.min(290, W * 0.17), h: 330 };
     win.x = win.cx - win.w / 2; win.y = win.cy - win.h / 2;
     return {
@@ -143,12 +155,12 @@
     // Spinnenweb in de hoek linksboven
     ctx.save();
     ctx.strokeStyle = 'rgba(230,225,215,0.22)'; ctx.lineWidth = 1.2;
-    const wx = L.postL + L.postW / 2, wy = pY + pH;
+    const wx = L.postL + L.postW / 2, wy = pY + pH, webR = L.portrait ? 100 : 150;
     for (let a = 0; a <= 6; a++) {
       const ang = (a / 6) * Math.PI / 2;
-      ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(ang) * 150, wy + Math.sin(ang) * 150); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(ang) * webR, wy + Math.sin(ang) * webR); ctx.stroke();
     }
-    for (let r = 25; r <= 150; r += 25) {
+    for (let r = 25; r <= webR; r += 25) {
       ctx.beginPath();
       for (let a = 0; a <= 6; a++) {
         const ang = (a / 6) * Math.PI / 2, rr = r - (a % 2 ? 4 : 0);
