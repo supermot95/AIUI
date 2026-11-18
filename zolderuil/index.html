@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>De uil op zolder</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    #debug {
+      display: none; position: fixed; top: 12px; left: 12px; margin: 0; padding: 12px 14px;
+      background: rgba(0,0,0,0.72); color: #f3e6cf; border-radius: 8px;
+      font: 13px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space: pre; pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="scherm"></canvas>
+  <pre id="debug"></pre>
+  <script src="config.js"></script>
+  <script src="js/astro.js"></script>
+  <script src="js/scene.js"></script>
+  <script src="js/owl.js"></script>
+  <script src="js/brain.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
