@@ -20,6 +20,7 @@
     spreadL: 0, spreadR: 0,// vleugel uitstrekken (0..1)
     beak: 0,               // snavel open (0..1)
     throat: 0,             // keel opzetten (oehoe)
+    cross: 0,              // scheel kijken (naar iets vlak voor zijn snavel)
     flyX: 0, flyY: 0,      // positie tijdens het vliegen
   };
 
@@ -33,6 +34,8 @@
       this.blink = 0;
       this.autoLook = true;
       this.asleep = false;
+      this.hat = null;       // hoedje (feestdagen)
+      this.neck = null;      // strik of sjaal
     }
     // Zet doelwaarden; speed = hoe snel (hoger = sneller).
     set(obj, speed = 4) { for (const key in obj) { this.t[key] = obj[key]; this.k[key] = speed; } }
@@ -220,8 +223,8 @@
       ctx.stroke();
 
       const blinkMul = 1 - o.blink;
-      if (eL.v > 0) drawEye(ctx, eL.x, -2, 30, eL.v, p.eyeL * blinkMul, p.lookX, p.lookY, p.pupil, p.brow, -1);
-      if (eR.v > 0) drawEye(ctx, eR.x, -2, 30, eR.v, p.eyeR * blinkMul, p.lookX, p.lookY, p.pupil, p.brow, 1);
+      if (eL.v > 0) drawEye(ctx, eL.x, -2, 30, eL.v, p.eyeL * blinkMul, U.clamp(p.lookX + p.cross * 0.95, -1, 1), p.lookY, p.pupil, p.brow, -1);
+      if (eR.v > 0) drawEye(ctx, eR.x, -2, 30, eR.v, p.eyeR * blinkMul, U.clamp(p.lookX - p.cross * 0.95, -1, 1), p.lookY, p.pupil, p.brow, 1);
 
       // snavel
       const bv = vis(0);
@@ -263,6 +266,93 @@
           ctx.restore();
         }
       }
+      ctx.restore();
+    }
+    if (o.hat) drawHat(ctx, o.hat, a, time);
+  }
+
+  // ---------- hoedjes (in kop-coördinaten; bovenkant kop is y = -90) ----------
+  function drawHat(ctx, hat, a, t) {
+    ctx.save();
+    ctx.translate(Math.sin(a) * 30, -78);
+    ctx.lineJoin = 'round';
+    if (hat === 'mijter') {
+      ctx.fillStyle = '#c4122f'; ctx.strokeStyle = '#e8b83a'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(-46, 0); ctx.lineTo(-44, -60); ctx.quadraticCurveTo(-30, -115, 0, -140);
+      ctx.quadraticCurveTo(30, -115, 44, -60); ctx.lineTo(46, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#e8b83a'; ctx.fillRect(-48, -14, 96, 14); ctx.fillRect(-5, -100, 10, 86);
+      ctx.fillRect(-26, -72, 52, 10);
+      ctx.fillStyle = '#fff3c0'; ctx.beginPath(); ctx.arc(0, -67, 6, 0, TAU); ctx.fill();
+    } else if (hat === 'kerstmuts') {
+      const sw = Math.sin(t * 1.5) * 4;
+      ctx.fillStyle = '#d2232a';
+      ctx.beginPath(); ctx.moveTo(-52, -8); ctx.quadraticCurveTo(-30, -100, 30, -110);
+      ctx.quadraticCurveTo(80 + sw, -100, 92 + sw, -60); ctx.quadraticCurveTo(60, -80, 52, -8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.beginPath(); ctx.moveTo(20, -10); ctx.quadraticCurveTo(40, -70, 60, -80); ctx.lineTo(52, -8); ctx.fill();
+      ctx.fillStyle = '#fbfaf5';
+      ctx.beginPath(); ctx.ellipse(0, -6, 62, 16, 0, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(94 + sw, -54, 16, 0, TAU); ctx.fill();
+    } else if (hat === 'feestmuts') {
+      ctx.rotate(0.18);
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(-36, 0); ctx.lineTo(0, -120); ctx.lineTo(36, 0); ctx.closePath(); ctx.clip();
+      ctx.fillStyle = '#3aa0e8'; ctx.fillRect(-40, -125, 80, 130);
+      ctx.fillStyle = '#f2b632';
+      for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(-60, -10 - i * 24); ctx.lineTo(60, -40 - i * 24); ctx.lineTo(60, -28 - i * 24); ctx.lineTo(-60, 2 - i * 24); ctx.fill(); }
+      ctx.restore();
+      ctx.fillStyle = '#e8433a';
+      for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.arc(Math.cos(i * 0.8) * 9, -122 + Math.sin(i * 0.8) * 9, 8, 0, TAU); ctx.fill(); }
+    } else if (hat === 'kroontje') {
+      ctx.fillStyle = '#ff8a1c'; ctx.strokeStyle = '#c75f00'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-44, 0); ctx.lineTo(-48, -50); ctx.lineTo(-24, -24); ctx.lineTo(0, -62);
+      ctx.lineTo(24, -24); ctx.lineTo(48, -50); ctx.lineTo(44, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      for (const [x, y, c] of [[-48, -52, '#fff'], [0, -64, '#fff'], [48, -52, '#fff'], [-20, -10, '#21468b'], [0, -10, '#ae1c28'], [20, -10, '#21468b']]) {
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, 5.5, 0, TAU); ctx.fill();
+      }
+    } else if (hat === 'heksenhoed') {
+      ctx.fillStyle = '#2b1d3d';
+      ctx.beginPath(); ctx.ellipse(0, -4, 86, 16, 0, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-44, -8); ctx.quadraticCurveTo(-20, -80, 10, -130); ctx.quadraticCurveTo(40, -150, 56, -126);
+      ctx.quadraticCurveTo(30, -120, 26, -80); ctx.lineTo(44, -8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ff8a1c'; ctx.fillRect(-42, -26, 84, 12);
+      ctx.fillStyle = '#f7d257'; ctx.fillRect(-8, -30, 16, 20);
+    } else if (hat === 'konijnenoren') {
+      for (const s of [-1, 1]) {
+        ctx.save(); ctx.translate(s * 26, -4); ctx.rotate(s * 0.22 + Math.sin(t * 2 + s) * 0.04);
+        ctx.fillStyle = '#f7f3ee'; ctx.beginPath(); ctx.ellipse(0, -62, 20, 64, 0, 0, TAU); ctx.fill();
+        ctx.fillStyle = '#f5b6c8'; ctx.beginPath(); ctx.ellipse(0, -60, 10, 50, 0, 0, TAU); ctx.fill();
+        ctx.restore();
+      }
+      ctx.fillStyle = '#ddd'; ctx.fillRect(-50, -8, 100, 10);
+    } else if (hat === 'bloem') {
+      ctx.translate(-50, -6);
+      ctx.fillStyle = '#ff7eb6';
+      for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.ellipse(Math.cos(i * 1.05) * 14, Math.sin(i * 1.05) * 14, 11, 7, i * 1.05, 0, TAU); ctx.fill(); }
+      ctx.fillStyle = '#ffd23d'; ctx.beginPath(); ctx.arc(0, 0, 9, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#5cb85c'; ctx.beginPath(); ctx.ellipse(20, 14, 14, 6, 0.6, 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawNeck(ctx, neck, t) {
+    if (neck === 'strik') {
+      ctx.save(); ctx.translate(0, -182);
+      ctx.fillStyle = '#d23b2f';
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-38, -18); ctx.lineTo(-38, 18); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(38, -18); ctx.lineTo(38, 18); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#fff'; for (const [x, y] of [[-24, -5], [-28, 8], [24, -5], [28, 8]]) { ctx.beginPath(); ctx.arc(x, y, 3.5, 0, TAU); ctx.fill(); }
+      ctx.fillStyle = '#a82a20'; ctx.beginPath(); ctx.ellipse(0, 0, 10, 12, 0, 0, TAU); ctx.fill();
+      ctx.restore();
+    } else if (neck === 'sjaal') {
+      ctx.save(); ctx.translate(0, -190);
+      ctx.fillStyle = '#ff7f00';
+      ctx.beginPath(); ctx.ellipse(0, 0, 92, 24, 0, 0, TAU); ctx.fill();
+      const sw = Math.sin(t * 2) * 4;
+      ctx.beginPath(); ctx.moveTo(30, 10); ctx.lineTo(60 + sw, 110); ctx.lineTo(28 + sw, 114); ctx.lineTo(10, 14); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      for (const y of [40, 70]) { ctx.save(); ctx.translate(0, 0); ctx.beginPath(); ctx.moveTo(18 + y * 0.32, y); ctx.lineTo(48 + y * 0.32 + sw * y / 110, y); ctx.lineTo(50 + y * 0.32 + sw * y / 110, y + 8); ctx.lineTo(20 + y * 0.32, y + 8); ctx.fill(); ctx.restore(); }
+      ctx.strokeStyle = 'rgba(150,60,0,0.4)'; ctx.lineWidth = 2;
+      for (let x = -70; x <= 70; x += 14) { ctx.beginPath(); ctx.moveTo(x, -18); ctx.lineTo(x + 6, 18); ctx.stroke(); }
       ctx.restore();
     }
   }
@@ -393,9 +483,29 @@
     ctx.scale(fl * 0.5 + 0.5, 1);
     drawHead(ctx, o, time, extras);
     ctx.restore();
+    if (o.neck) drawNeck(ctx, o.neck, time);
 
     ctx.restore();
   }
 
-  window.UilOwl = { Rig, drawOwl, drawRunningMouse };
+  // Spinnetje aan een draadje (van boven naar beneden).
+  function drawSpider(ctx, x, y, topY, t, k = 1) {
+    ctx.strokeStyle = 'rgba(235,235,235,0.75)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x, topY); ctx.lineTo(x, y); ctx.stroke();
+    ctx.save(); ctx.translate(x, y + 9 * k); ctx.scale(k, k);
+    ctx.strokeStyle = '#2a211c'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+    for (const s of [-1, 1]) for (let i = 0; i < 4; i++) {
+      const wig = Math.sin(t * 8 + i) * 2;
+      ctx.beginPath(); ctx.moveTo(0, -2 + i * 3); ctx.quadraticCurveTo(s * 12, -10 + i * 5 + wig, s * 17, 2 + i * 5); ctx.stroke();
+    }
+    ctx.fillStyle = '#4a3a30'; ctx.strokeStyle = '#1a120c'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(0, 4, 8, 10, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -7, 5.5, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c9a25a'; ctx.beginPath(); ctx.arc(0, 4, 3, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#fff'; for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(s * 2.4, -8, 2, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = '#000'; for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(s * 2.4, -7.6, 1, 0, TAU); ctx.fill(); }
+    ctx.restore();
+  }
+
+  window.UilOwl = { Rig, drawOwl, drawRunningMouse, drawSpider };
 })();

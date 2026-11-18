@@ -1,7 +1,7 @@
 // Hoofdlus: klok, scherm, tekenen, debug.
 (function () {
   const U = window.UilUtil, CFG = window.UIL_CONFIG;
-  const { clamp, smooth, rand } = U;
+  const { clamp, smooth, rand, pick } = U;
   const canvas = document.getElementById('scherm');
   const ctx = canvas.getContext('2d');
   const owlCanvas = document.createElement('canvas');
@@ -49,13 +49,26 @@
 
   // ---------- deeltjes ----------
   const particles = [];
-  let zzzTimer = 0, snore = { phase: 0, popAt: rand(4, 9), popping: 0 };
+  let zzzTimer = 0, heartTimer = 0, snore = { phase: 0, popAt: rand(4, 9), popping: 0 };
   function spawnFeather(x, y) {
     particles.push({ type: 'veer', x, y, vx: rand(-60, 60), vy: rand(-90, -30), rot: rand(0, 6), vr: rand(-2, 2), life: 0, max: rand(4, 7) });
   }
   function updateParticles(dt, owlPos, S) {
     for (const e of brain.events.splice(0)) {
       if (e.type === 'veertjes') for (let i = 0; i < e.n; i++) spawnFeather(owlPos.x + rand(-80, 80), owlPos.y - rand(100, 250));
+      if (e.type === 'bong') { // geluid van de Dom komt van de zijkant binnen
+        const side = brain.domKant, x = side < 0 ? 10 : W - 10;
+        particles.push({ type: 'bong', x, y: H * 0.2 + rand(-20, 60), dir: -side, life: 0, max: 1.6, size: rand(40, 52) });
+        particles.push({ type: 'golf', x: side < 0 ? -20 : W + 20, y: H * 0.3, dir: -side, life: 0, max: 1.4 });
+      }
+      if (e.type === 'noten') for (let i = 0; i < 5; i++) {
+        const side = brain.domKant;
+        particles.push({ type: 'noot', x: side < 0 ? 10 : W - 10, y: H * 0.22 + rand(-30, 60), dir: -side, life: -i * 0.35, max: 3, ch: pick(['♪', '♫', '♩']), ph: rand(0, 6) });
+      }
+    }
+    if (brain.kal && brain.kal.hartjes && rig.visible && !rig.asleep) {
+      heartTimer -= dt;
+      if (heartTimer <= 0) { heartTimer = rand(1.5, 4); particles.push({ type: 'hart', x: owlPos.x + rand(-120, 120) * S, y: owlPos.y - rand(150, 300) * S, life: 0, max: 4, ph: rand(0, 6) }); }
     }
     if (rig.asleep && rig.p.eyeL < 0.1 && rig.p.eyeR < 0.1 && rig.visible) {
       zzzTimer -= dt;
@@ -66,15 +79,39 @@
     }
     for (const p of particles) {
       p.life += dt;
+      if (p.life < 0) continue;
       if (p.type === 'z') { p.y -= 28 * dt; p.x += Math.sin(p.life * 2) * 18 * dt + 10 * dt; }
+      else if (p.type === 'bong') { p.x += p.dir * 70 * dt; }
+      else if (p.type === 'golf') { }
+      else if (p.type === 'noot') { p.x += p.dir * 60 * dt; p.y += Math.sin(p.life * 4 + p.ph) * 30 * dt - 8 * dt; }
+      else if (p.type === 'hart') { p.y -= 35 * dt; p.x += Math.sin(p.life * 2 + p.ph) * 20 * dt; }
       else { p.vy += 20 * dt; p.vx *= 0.98; p.vy = Math.min(p.vy, 40); p.x += (p.vx + Math.sin(p.life * 3) * 30) * dt; p.y += p.vy * dt; p.rot += p.vr * dt; }
     }
     for (let i = particles.length - 1; i >= 0; i--) if (particles[i].life > particles[i].max) particles.splice(i, 1);
   }
+  const FONT = '"Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif';
   function drawParticles(c, dim) {
     for (const p of particles) {
+      if (p.life < 0) continue;
       const a = clamp(Math.min(p.life / 0.4, (p.max - p.life) / 1));
-      if (p.type === 'z') {
+      if (p.type === 'bong') {
+        const s = 1 + p.life * 0.25;
+        c.save(); c.translate(p.x, p.y); c.scale(s, s);
+        c.font = `bold ${p.size}px ${FONT}`; c.textAlign = p.dir > 0 ? 'left' : 'right';
+        c.lineWidth = 5; c.strokeStyle = `rgba(60,35,10,${a * 0.8})`; c.strokeText('BONG', 0, 0);
+        c.fillStyle = `rgba(255,214,110,${a})`; c.fillText('BONG', 0, 0);
+        c.restore();
+      } else if (p.type === 'golf') {
+        c.strokeStyle = `rgba(255,220,140,${0.5 * (1 - p.life / p.max)})`; c.lineWidth = 4;
+        for (let i = 0; i < 3; i++) {
+          const r = 40 + p.life * 160 + i * 30;
+          c.beginPath(); c.arc(p.x, p.y, r, p.dir > 0 ? -0.6 : Math.PI - 0.6, p.dir > 0 ? 0.6 : Math.PI + 0.6); c.stroke();
+        }
+      } else if (p.type === 'noot' || p.type === 'hart') {
+        c.font = `bold ${p.type === 'hart' ? 34 : 38}px ${FONT}`;
+        c.fillStyle = p.type === 'hart' ? `rgba(240,70,110,${a})` : `rgba(255,225,150,${a})`;
+        c.fillText(p.type === 'hart' ? '♥' : p.ch, p.x, p.y);
+      } else if (p.type === 'z') {
         c.fillStyle = `rgba(235,235,255,${a * 0.85})`;
         c.font = `bold ${p.size + p.life * 6}px "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif`;
         c.fillText('z', p.x, p.y);
@@ -98,24 +135,46 @@
     return r;
   }
 
+  function wrap(c, text, maxW) {
+    const words = text.split(' '), lines = [];
+    let line = '';
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (c.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test;
+    }
+    lines.push(line);
+    return lines;
+  }
+
   function drawBubble(c, b, x, y) {
     const age = brain.clock - b.born, left = b.until - brain.clock;
     const a = clamp(Math.min(age / 0.2, left / 0.4));
     const pop = 0.85 + 0.15 * clamp(age / 0.15);
+    const droom = b.stijl === 'droom';
     c.save();
-    c.globalAlpha = a;
-    c.font = 'bold 34px "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif';
-    const tw = c.measureText(b.text).width, w = tw + 44, h = 62;
-    const bx = clamp(x, 20, W - w - 20), by = y - h;
+    c.globalAlpha = a * (droom ? 0.92 : 1);
+    const fs = portrait ? 32 : 34;
+    c.font = `${droom ? 'italic ' : 'bold '}${fs}px ${FONT}`;
+    const lines = wrap(c, b.text, Math.min(W * 0.78, 560));
+    const tw = Math.max(...lines.map((l) => c.measureText(l).width));
+    const lh = fs * 1.2, w = tw + 44, h = lines.length * lh + 26;
+    const bx = clamp(x - (droom ? w * 0.3 : 0), 20, W - w - 20), by = Math.max(20, y - h);
     c.translate(bx + w / 2, by + h / 2); c.scale(pop, pop); c.translate(-(bx + w / 2), -(by + h / 2));
-    c.fillStyle = '#fffaf0'; c.strokeStyle = '#3a2410'; c.lineWidth = 3;
+    c.fillStyle = droom ? '#eef2ff' : '#fffaf0'; c.strokeStyle = '#3a2410'; c.lineWidth = 3;
     c.beginPath();
-    c.roundRect ? c.roundRect(bx, by, w, h, 28) : c.rect(bx, by, w, h);
+    c.roundRect ? c.roundRect(bx, by, w, h, Math.min(28, h / 2)) : c.rect(bx, by, w, h);
     c.fill(); c.stroke();
-    c.beginPath(); c.moveTo(bx + 30, by + h - 2); c.lineTo(bx + 10, by + h + 26); c.lineTo(bx + 56, by + h - 2); c.fill();
-    c.beginPath(); c.moveTo(bx + 30, by + h); c.lineTo(bx + 10, by + h + 26); c.lineTo(bx + 56, by + h); c.stroke();
-    c.fillStyle = '#3a2410'; c.textBaseline = 'middle';
-    c.fillText(b.text, bx + 22, by + h / 2 + 2);
+    const tx = clamp(x, bx + 30, bx + w - 30);
+    if (droom) { // denkwolkje met bolletjes
+      for (const [dx, dy, r] of [[-10, 18, 10], [-24, 40, 7], [-34, 58, 4.5]]) {
+        c.beginPath(); c.arc(tx + dx, by + h + dy, r, 0, 7); c.fill(); c.stroke();
+      }
+    } else {
+      c.beginPath(); c.moveTo(tx - 4, by + h - 2); c.lineTo(tx - 22, by + h + 26); c.lineTo(tx + 22, by + h - 2); c.fill();
+      c.beginPath(); c.moveTo(tx - 4, by + h); c.lineTo(tx - 22, by + h + 26); c.lineTo(tx + 22, by + h); c.stroke();
+    }
+    c.fillStyle = '#3a2410'; c.textBaseline = 'middle'; c.textAlign = 'center';
+    lines.forEach((l, i) => c.fillText(l, bx + w / 2, by + 13 + lh * (i + 0.5) + 2));
     c.restore();
   }
 
@@ -137,6 +196,7 @@ locatie   ${CFG.locatie.naam}
 zon       ${env.sun.alt.toFixed(1)}°   op ${fmt(times.sunrise)}  onder ${fmt(times.sunset)}
 maan      ${Astro.phaseName(env.moonIllum.phase)} (${Math.round(env.moonIllum.fraction * 100)}%), ${env.moon.alt.toFixed(0)}°
 licht     ${env.dayLight.toFixed(2)}   scherm ${Math.round(env.brightness * 100)}%
+kalender  ${(brain.kal && brain.kal.naam) || '–'}${brain.kal && brain.kal.hoed ? ' (' + brain.kal.hoed + ')' : ''}
 modus     ${brain.mode}${brain.busy ? ' (bezig)' : ''}
 actie     ${brain.current ? brain.current.name : '–'}
 eerder    ${brain.history.slice(1).join(', ')}
@@ -149,22 +209,27 @@ fps       ${fps}
 toetsen: 1 rondkijken  2 kopdraai  3 poetsen  4 rekken
          5 oehoe  6 jagen  7 schudden  8 gapen  9 bijna vallen
          0 kopschuin  h hupjes  m muisje  z slapen
+         b Dom slaat  q kwartier  g gedachte  n niezen
+         k hik  s spinnetje  j dansje  w droom
          t +1 uur  T -1 uur  [ ] trager/sneller`;
   }
 
   addEventListener('keydown', (e) => {
-    const map = { 1: 'rondkijken', 2: 'kopdraai', 3: 'poetsen', 4: 'rekken', 5: 'oehoe', 6: 'jagen', 7: 'schudden', 8: 'gapen', 9: 'bijnaVallen', 0: 'kopschuin', h: 'verschuiven', z: 'inslapen' };
+    const map = { 1: 'rondkijken', 2: 'kopdraai', 3: 'poetsen', 4: 'rekken', 5: 'oehoe', 6: 'jagen', 7: 'schudden', 8: 'gapen', 9: 'bijnaVallen', 0: 'kopschuin', h: 'verschuiven', z: 'inslapen', q: 'kwartier', g: 'gedachte', n: 'niezen', k: 'hik', s: 'spinnetje', j: 'dansje', w: 'droom' };
     if (e.key === 'd') showDebug = !showDebug;
     else if (e.key === 'm') { brain.mouse = null; brain.busy = false; brain.spawnMouse(); }
     else if (e.key === 't') jump(1);
     else if (e.key === 'T') jump(-1);
     else if (e.key === ']') setSpeed(speed >= 1 ? Math.min(speed * 4, 4096) : 1);
     else if (e.key === '[') setSpeed(speed > 1 ? Math.max(1, speed / 4) : 1);
+    else if (e.key === 'b') { const h = simNow().getHours(); brain.force('domKlok', h % 12 || 12); }
     else if (map[e.key]) brain.force(map[e.key]);
   });
 
   // ---------- lus ----------
-  let last = performance.now(), lastSim = simNow(), mouseTimer = 0;
+  let last = performance.now(), lastSim = simNow(), mouseTimer = 0, lastMinute = null, lastQuarter = null;
+  const dom = CFG.dom || {};
+  brain.domKant = dom.kant === 'rechts' ? 1 : -1;
   function frame(now) {
     requestAnimationFrame(frame);
     const minDt = 1000 / (CFG.maxFps || 30);
@@ -185,6 +250,17 @@ toetsen: 1 rondkijken  2 kopdraai  3 poetsen  4 rekken
     const brightness = U.lerp(CFG.helderheid.nacht, CFG.helderheid.dag, smooth(-8, 4, sun.alt));
     const t = now / 1000;
     const env = { date, sun, moon, moonIllum, dayLight, nightness, brightness, time: t, sunAlt: sun.alt };
+
+    // kalender (elke minuut opnieuw) en de Dom (elk kwartier)
+    const minuteKey = Math.floor(date / 60000);
+    if (minuteKey !== lastMinute) {
+      lastMinute = minuteKey;
+      const kal = UilKalender.kalender(date, CFG);
+      brain.kal = kal; rig.hat = kal.hoed; rig.neck = kal.nek;
+      const q = Math.floor(date / 900000);
+      if (lastQuarter !== null && q !== lastQuarter && dom.aan !== false && speed <= 64) brain.onQuarter(new Date(q * 900000), dom.nachtStil);
+      lastQuarter = q;
+    }
 
     // zeldzame verrassing
     mouseTimer += dt;
@@ -214,6 +290,11 @@ toetsen: 1 rondkijken  2 kopdraai  3 poetsen  4 rekken
     skyCtx.clearRect(0, 0, skyCanvas.width, skyCanvas.height);
     skyCtx.setTransform(scale, 0, 0, scale, 0, 0); zoom(skyCtx);
     UilScene.drawSky(skyCtx, L, env);
+    if (brain.kal) {
+      skyCtx.save(); UilScene.windowPath(skyCtx, L.win); skyCtx.clip();
+      UilProps.drawWindowExtras(skyCtx, L, brain.kal, t);
+      skyCtx.restore();
+    }
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalCompositeOperation = 'destination-over';
     ctx.drawImage(skyCanvas, 0, 0);
@@ -230,7 +311,11 @@ toetsen: 1 rondkijken  2 kopdraai  3 poetsen  4 rekken
     octx.setTransform(scale, 0, 0, scale, 0, 0);
     zoom(octx);
     const bubbleR = snoreBubble(dt);
+    const dark = 1 - dayLight;
+    if (brain.kal) UilProps.drawLayer(octx, L, brain.kal, W / 2, S, t, dark);
     UilOwl.drawOwl(octx, rig, owlPos, S, t, { snoreBubble: bubbleR });
+    brain.geo = { beakX: owlPos.x + rig.p.x, beakY: owlPos.y + rig.p.y + (-250 + rig.p.headY) * S, S };
+    if (brain.spider) UilOwl.drawSpider(octx, brain.spider.x + brain.spider.swing, brain.spider.y, brain.spider.topY, t, S * 1.4);
     if (brain.mouse) UilOwl.drawRunningMouse(octx, brain.mouse.x, L.beamY + 2, brain.mouse.dir, t);
     octx.setTransform(1, 0, 0, 1, 0, 0);
     octx.globalCompositeOperation = 'source-atop';
@@ -243,6 +328,7 @@ toetsen: 1 rondkijken  2 kopdraai  3 poetsen  4 rekken
 
     // 4) warm licht van het lantaarntje
     UilScene.lanternGlow(ctx, L, t, lit);
+    if (brain.kal) UilProps.drawGlows(ctx, L, brain.kal, W / 2, S, t, dark);
 
     // 5) deeltjes en tekstballon
     updateParticles(dt, { x: owlPos.x + rig.p.x, y: owlPos.y + rig.p.headY }, S);

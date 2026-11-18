@@ -32,4 +32,25 @@ window.UIL_CONFIG = {
   // Kans op een zeldzame verrassing (muisje dat langs rent),
   // gemiddeld eens per zoveel minuten.
   muisjeElkeMinuten: 40,
+
+  // De Domtoren: elk heel uur kijkt de uil die kant op, wijst
+  // met zijn vleugel en telt de slagen mee. Elk kwartier deint
+  // hij mee op het deuntje van de beiaard.
+  dom: {
+    aan: true,
+    kant: 'links',      // waar de Dom staat, gezien vanaf het scherm: 'links' of 'rechts'
+    nachtStil: false,   // true = tussen 23:00 en 7:00 geen slagen
+  },
+
+  // Verjaardagen: feestmuts, slinger met naam, felicitaties.
+  // datum = 'MM-DD'. Vul hier jullie eigen gezin in.
+  verjaardagen: [
+    // { naam: 'Tom', datum: '03-14' },
+  ],
+
+  // Dagen dat Oranje speelt (sjaal, slinger, 'Hup Holland hup!').
+  // datum = 'JJJJ-MM-DD'
+  oranjeWedstrijden: [
+    // '2027-06-12',
+  ],
 };

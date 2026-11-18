@@ -217,6 +217,146 @@
     o.autoLook = true;
   };
 
+  // --- de Dom (links buiten beeld) slaat het hele uur ---
+  A.domKlok = function* (o, b, n) {
+    const side = b.domKant;
+    const wing = side < 0 ? 'wingL' : 'wingR', spread = side < 0 ? 'spreadL' : 'spreadR';
+    o.autoLook = false;
+    if (b.mode === 'slaap' || o.asleep) {
+      for (let i = 1; i <= n; i++) {
+        b.emit('bong', i);
+        if (i === Math.min(3, n)) o.set({ [side < 0 ? 'eyeL' : 'eyeR']: 0.35, lookX: side, brow: 0.9 }, 4);
+        yield 1.4;
+      }
+      b.say(pick(['Ja ja, ik hóór het, Dom.', `${n} uur. Fijn. Slapen.`, 'Kan dat niet wat zachter?', 'Ssst! Er slapen hier uilen!']), 2.8);
+      yield 2.8;
+      o.set({ eyeL: 0, eyeR: 0, brow: 0, lookX: 0 }, 2); yield 1;
+      return;
+    }
+    o.set({ ...AWAKE, headAngle: side * 1.05, lookX: side, lookY: -0.25, headTilt: -side * 0.08 }, 4); yield 0.6;
+    o.set({ [wing]: 1.45, [spread]: 0.7 }, 4); yield 0.5;          // wijst naar de Dom
+    const kwijt = n >= 5 && Math.random() < 0.2;
+    for (let i = 1; i <= n; i++) {
+      b.emit('bong', i);
+      o.set({ headY: 7 }, 16); yield 0.15; o.set({ headY: 0 }, 8);  // knikje bij elke slag
+      if (kwijt && i >= n - 2) {
+        if (i === n - 2) { b.say(`${i}... eh...`, 1.6); o.set({ headTilt: side * 0.3, brow: -0.7 }, 5); }
+      } else b.say(String(i), 1.2);
+      yield 1.25;
+    }
+    o.set({ [wing]: 0, [spread]: 0 }, 3);
+    if (kwijt) b.say(pick(['Hoeveel was het nou?', 'Tel kwijt. Het is in elk geval laat.', 'Eh... 37 uur?']), 2.8);
+    else b.say(pick([`${n} uur, zegt de Dom.`, `Het is ${n} uur!`, `De Dom zegt ${n} uur. Ik ook.`]), 2.6);
+    o.set({ headAngle: 0, lookX: 0, lookY: 0, headTilt: 0, brow: 0 }, 3); yield 2.6;
+    o.autoLook = true;
+  };
+
+  A.kwartier = function* (o, b) { // de beiaard speelt een deuntje
+    b.emit('noten', 1);
+    if (b.mode === 'slaap' || o.asleep) return;
+    o.autoLook = false;
+    o.set({ headAngle: b.domKant * 0.85, lookX: b.domKant, headTilt: 0.1 }, 5); yield 0.6;
+    for (let i = 0; i < 4; i++) { o.set({ headTilt: i % 2 ? 0.12 : -0.12 }, 6); yield 0.45; } // meedeinen
+    if (Math.random() < 0.35) b.say(pick(['Tingeling!', 'Kwartiertje.', 'Mooi deuntje, Dom.']), 1.8);
+    yield 0.5;
+    o.set({ headAngle: 0, lookX: 0, headTilt: 0 }, 3); yield 0.8;
+    o.autoLook = true;
+  };
+
+  // --- grapjes ---
+  A.gedachte = function* (o, b) {
+    const k = b.kal;
+    const pool = k && k.gedachten.length && Math.random() < 0.65 ? k.gedachten : (k ? k.algemeen : ['Oehoe.']);
+    let tekst = pick(pool);
+    for (let i = 0; i < 4 && b.lastThoughts.includes(tekst); i++) tekst = pick(pool);
+    b.lastThoughts.unshift(tekst); b.lastThoughts.length = Math.min(b.lastThoughts.length, 8);
+    o.autoLook = false;
+    o.set({ lookX: 0, lookY: 0, headAngle: rand(-0.2, 0.2), headTilt: rand(-0.15, 0.15) }, 4); yield 0.4;
+    const dur = 2.2 + tekst.length * 0.07;
+    b.say(tekst, dur);
+    o.set({ beak: 0.25 }, 12); yield 0.15; o.set({ beak: 0 }, 12);
+    yield dur;
+    o.set({ headAngle: 0, headTilt: 0 }, 3); yield 0.5;
+    o.autoLook = true;
+  };
+
+  A.droom = function* (o, b) { // overdag, in zijn slaap
+    b.say(pick(['zzz... muisjes...', 'zzz... nog vijf minuutjes...', 'zzz... de Dom is van chocola...',
+      'zzz... ik vlieg... o, dat kan ik echt...', 'zzz... nee, jij bent een uilskuiken...', 'zzz... oehoe... mmm...']), 4.5, 'droom');
+    o.set({ beak: 0.12 }, 2); yield 1.5; o.set({ beak: 0 }, 2);
+    yield 3.5;
+  };
+
+  A.niezen = function* (o, b) {
+    o.autoLook = false;
+    o.set({ headY: -12, eyeL: 0.45, eyeR: 0.45, beak: 0.35, lookY: -0.6, headTilt: rand(-0.1, 0.1) }, 3);
+    b.say('Ha...', 1); yield 0.9;
+    o.set({ headY: -20, eyeL: 0.2, eyeR: 0.2, beak: 0.5 }, 3);
+    b.say('Haaa...', 1); yield 0.9;
+    o.set({ headY: 16, beak: 0.9, eyeL: 0, eyeR: 0, lean: 0.08, fluff: 1 }, 28);
+    b.say('HATSJOE!', 1.8); b.emit('veertjes', 7);
+    yield 0.6;
+    o.set({ ...AWAKE, lookY: 0 }, 4); yield 1.2;
+    b.say(pick(['Pardon.', 'Sorry. Stofje.', 'Zolderstof...']), 1.8); yield 1.8;
+    o.autoLook = true;
+  };
+
+  A.hik = function* (o, b) {
+    const n = 5 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < n; i++) {
+      o.set({ y: -16, fluff: 0.5, pupil: 1.3 }, 22); yield 0.08;
+      o.set({ y: 0, fluff: 0, pupil: 1 }, 10);
+      b.say('hik!', 0.8); yield rand(1, 2.2);
+    }
+    b.say(pick(['Bah. De hik.', '...en weg is ie!', 'Iemand moet me even laten schrikken.']), 2.2); yield 2;
+  };
+
+  A.spinnetje = function* (o, b) {
+    const g = b.geo; if (!g) return;
+    o.autoLook = false;
+    o.set({ headAngle: 0, headTilt: 0 }, 6);
+    const sp = b.spider = { x: g.beakX + rand(-6, 6), y: 100, topY: 96, swing: 0 };
+    const stop = g.beakY - 40 * g.S;
+    while (sp.y < stop) {
+      sp.y += 70 * 0.05;
+      o.set({ lookX: 0, lookY: clamp((sp.y - g.beakY) / 300, -1, 0), headTilt: -0.05 }, 6);
+      if (sp.y > stop - 120) o.set({ cross: clamp(1 - (stop - sp.y) / 120) }, 6);
+      yield 0.05;
+    }
+    o.set({ cross: 1, lookY: 0, pupil: 1.2, brow: -0.6 }, 6); yield 1.4;
+    b.say('...', 1.5); yield 1.6;
+    o.set({ beak: 0.35, fluff: 0.2 }, 10); b.say('Pfoe!', 1.4); yield 0.2;
+    for (let i = 0; i < 30; i++) { sp.swing = Math.sin(i * 0.4) * (40 - i); sp.y -= 4; yield 0.04; }
+    o.set({ beak: 0, cross: 0, pupil: 1, brow: 0, fluff: 0 }, 5);
+    while (sp.y > 90) { sp.y -= 9; yield 0.04; }
+    b.spider = null;
+    o.set({ headAngle: 0.3 }, 20); yield 0.1; o.set({ headAngle: -0.3 }, 20); yield 0.1; o.set({ headAngle: 0 }, 10); yield 0.6;
+    o.autoLook = true;
+  };
+
+  A.dansje = function* (o, b) {
+    o.autoLook = false;
+    b.say(pick(['♪ ♫', '♫ Oehoe-oehoe ♪', '♪ Feestje! ♫']), 3);
+    for (let i = 0; i < 10; i++) {
+      const s = i % 2 ? 1 : -1;
+      o.set({ y: -14, lean: s * 0.13, headTilt: -s * 0.3, wingL: s < 0 ? 0.6 : 0.15, wingR: s > 0 ? 0.6 : 0.15, eyeL: 0.6, eyeR: 0.6 }, 14); yield 0.16;
+      o.set({ y: 0 }, 14); yield 0.16;
+    }
+    o.set(AWAKE, 4); o.set({ headTilt: 0 }, 4); yield 0.8;
+    o.autoLook = true;
+  };
+
+  A.nieuwjaar = function* (o, b) { // schrikt van het vuurwerk om 00:00
+    o.autoLook = false;
+    o.set({ y: -45, fluff: 1, pupil: 1.6, eyeL: 1, eyeR: 1, brow: -1, wingL: 0.9, wingR: 0.9 }, 18);
+    b.say('WAAH!', 1.3); b.emit('veertjes', 6); yield 0.25;
+    o.set({ y: 0 }, 9); yield 1.2;
+    o.set({ wingL: 0, wingR: 0, fluff: 0.4, pupil: 1, brow: 0 }, 3); yield 0.5;
+    b.say('Gelukkig nieuwjaar!', 3); yield 2.5;
+    yield* A.dansje(o, b);
+    o.autoLook = true;
+  };
+
   // --- slapen ---
   A.slapen = function* (o) {
     o.autoLook = false; o.set(SLEEP, 1.2);
@@ -291,26 +431,45 @@
       this.mouse = null;
       this.W = 1778; this.H = 1000; this.moveLimit = 120; this.owlX = 0;
       this.history = [];
+      this.kal = null;           // kalender van vandaag (feestdagen, gedachten)
+      this.lastThoughts = [];
+      this.spider = null; this.geo = null;
+      this.domKant = -1;         // -1 = de Dom staat links buiten beeld
     }
 
-    say(text, dur) { this.bubble = { text, until: this.clock + dur, born: this.clock }; }
+    say(text, dur, stijl) { this.bubble = { text, until: this.clock + dur, born: this.clock, stijl }; }
     emit(type, n) { this.events.push({ type, n }); }
 
-    run(name) {
-      this.current = { name, gen: A[name](this.o, this), wait: 0 };
+    run(name, arg) {
+      this.current = { name, gen: A[name](this.o, this, arg), wait: 0 };
       this.cooldown[name] = this.clock;
       this.history.unshift(name); this.history.length = Math.min(this.history.length, 6);
     }
 
     // Handmatig (debugtoetsen): onderbreekt wat hij aan het doen is.
-    force(name) {
+    force(name, arg) {
       if (!A[name]) return;
+      this.spider = null; this.o.snap({ cross: 0 });
       this.o.flying = false; this.o.visible = true; this.o.carrying = false; this.busy = false;
       this.o.snap({ flyX: 0, flyY: 0 });
-      if (name !== 'muisKijken' && this.mode === 'slaap' && !['eenOogOpen', 'dommelen', 'slapen'].includes(name)) {
+      if (!['muisKijken', 'domKlok', 'kwartier'].includes(name) && this.mode === 'slaap' && !['eenOogOpen', 'dommelen', 'slapen', 'droom'].includes(name)) {
         this.mode = 'wakker'; this.o.asleep = false; this.o.set(AWAKE, 3);
       }
-      this.run(name);
+      this.run(name, arg);
+    }
+
+    // Elk kwartier (vanuit de klok): de Dom slaat of de beiaard speelt.
+    onQuarter(date, nachtStil) {
+      if (this.busy || this.o.flying || !this.o.visible || this.spider) return;
+      const h = date.getHours(), m = date.getMinutes();
+      if (nachtStil && (h >= 23 || h < 7)) return;
+      if (h === 0 && m === 0 && date.getMonth() === 0 && date.getDate() === 1) { this.force('nieuwjaar'); return; }
+      if (m === 0) {
+        if (this.mode !== 'slaap' && !this.o.asleep) this.o.set({ beak: 0, fluff: 0, wingL: 0, wingR: 0, spreadL: 0, spreadR: 0, y: 0, lean: 0 }, 4);
+        this.run('domKlok', h % 12 || 12);
+      } else {
+        this.run('kwartier');
+      }
     }
 
     // Wat wil de uil nu? Gewogen loting, zodat het nooit hetzelfde is.
@@ -320,9 +479,10 @@
       if (this.mode === 'slaap') {
         if (env.sunAlt > 2 && Math.random() < 0.12 + n.curiosity * 0.15) return 'dommelen';
         if (Math.random() < 0.2 + n.curiosity * 0.2) return 'eenOogOpen';
+        if (Math.random() < 0.18 && this.clock - (this.cooldown.droom ?? -1e9) > 120) return 'droom';
         return 'slapen';
       }
-      const night = env.nightness;
+      const night = env.nightness, k = this.kal;
       const opts = {
         stilzitten: 1.0,
         rondkijken: (0.5 + n.curiosity) * cool('rondkijken', 20),
@@ -337,6 +497,11 @@
         jagen: n.hunger > 0.35 && n.energy > 0.25 && night > 0.6 ? n.hunger * 1.6 * cool('jagen', 240) : 0,
         dutje: n.energy < 0.3 ? (0.3 - n.energy) * 3 * cool('dutje', 600) : 0,
         bijnaVallen: 0.012 * cool('bijnaVallen', 1800),
+        gedachte: (0.3 + (k && k.gedachten.length ? 0.2 : 0)) * cool('gedachte', 45),
+        dansje: (k && k.feest ? 0.35 : k && k.vrijdag ? 0.12 : 0.015) * cool('dansje', 120),
+        niezen: 0.035 * cool('niezen', 900),
+        hik: 0.025 * cool('hik', 1800),
+        spinnetje: 0.04 * cool('spinnetje', 1200),
       };
       let total = 0; for (const k in opts) total += opts[k];
       let r = Math.random() * total;

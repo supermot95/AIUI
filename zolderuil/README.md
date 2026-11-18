@@ -39,6 +39,10 @@ Toetsen (vooral voor het testen):
 | `7` | veren schudden | `8` | gapen |
 | `9` | bijna van de balk vallen | `0` | kopje scheef |
 | `h` | hupjes opzij | `z` | inslapen |
+| `b` | de Dom slaat het uur | `q` | kwartierdeuntje |
+| `g` | gedachte (tekstballon) | `w` | droom (overdag) |
+| `n` | niezen | `k` | de hik |
+| `s` | spinnetje | `j` | dansje |
 | `t` / `T` | een uur vooruit / terug | `[` `]` | klok trager / sneller |
 
 ## Wat zit er in fase 1
@@ -59,6 +63,47 @@ Toetsen (vooral voor het testen):
   pixels en de uil hupt af en toe naar een andere plek, allebei tegen inbranden.
 - **Zeldzame verrassing**: een muisje dat over de balk rent (gemiddeld eens per 40 minuten).
 
+## 🔔 De Domtoren
+
+De Dom staat links buiten beeld (instelbaar met `dom.kant` in `config.js`).
+
+- **Elk heel uur** draait de uil zijn kop naar de Dom, wijst er met zijn vleugel naar en telt
+  de slagen mee in een tekstballonnetje. Ondertussen komen grote **BONG**s van links het beeld in.
+  Soms raakt hij de tel kwijt ("8... eh... hoeveel was het nou?").
+- **Overdag** slaapt hij. Dan doet hij één chagrijnig oog open: *"Ja ja, ik hóór het, Dom."*
+- **Elk kwartier** zweven er muzieknootjes van links binnen en deint hij mee op de beiaard.
+- Wil je 's nachts geen slagen? Zet dan `dom.nachtStil: true`.
+
+## 🎉 Feestdagen en grapjes
+
+| Wanneer | Wat je ziet |
+|---|---|
+| Verjaardag (instelbaar) | Feestmuts, vlaggetjesslinger "HOERA NAAM!", felicitaties, dansjes |
+| Sinterklaastijd (14 nov–5 dec) | Klomp met wortel op de balk; vanaf 1 dec een mijter |
+| Sint Maarten (11 nov) | Lampion, "Sint Maarten, de koeien hebben staarten!" |
+| Kerst (vanaf 7 dec) | Knipperende kerstlampjes langs de balk; 20–26 dec een kerstmuts |
+| Oud & Nieuw | Oliebollen, feestmuts, slinger, vuurwerk in het raam; om 00:00 schrikt hij zich rot ("WAAH!") en daarna een dansje |
+| Koningsdag | Oranje kroontje, rood-wit-blauw-oranje slinger, "Ik verkoop deze balk. Twee euro." |
+| Oranje speelt (data in config) | Oranje sjaal, "Hup Holland hup!" |
+| Pasen | Konijnenoren en een paasei in een nestje |
+| Halloween | Heksenhoed, gloeiende pompoen, vleermuis in het raam |
+| Valentijn | Zwevende hartjes, "Ik vind jou oehoe-leuk." |
+| Eerste lentedag | Bloemetje bij zijn oor |
+| Dierendag | Strikje, "Vandaag is het míjn dag." |
+| Maandagochtend | Koffiemok "MAANDAG ☹" en chagrijnige gedachten |
+| Vrijdagavond | "Weekend!" en vaker een dansje |
+
+Daarnaast elke nacht:
+- **Gedachten voor voorbijgangers** in een tekstballon: *"Ik zie je wel hoor."*,
+  *"Ik ben niet dik. Ik ben donzig."*, *"Uilskuiken? Pardon?!"*, en na 1:00
+  *"Waarom ben jij nog wakker?"*. Op feestdagen komen er passende gedachten bij.
+- **Dromen** overdag in een denkwolkje: *"zzz... de Dom is van chocola..."*
+- **Niezen** (*"HATSJOE!"*, met rondvliegende veertjes), **de hik**, en een **dansje**.
+- **Spinnetje**: zakt aan een draadje voor zijn snavel. De uil kijkt scheel en blaast het weg.
+
+Testen kan met bijvoorbeeld `?datum=2026-12-05&tijd=20:00` (pakjesavond) of
+`?datum=2026-12-31&tijd=23:58` (wacht twee minuten op middernacht).
+
 ## Staand of liggend scherm
 
 De indeling past zich vanzelf aan de beeldverhouding aan:
@@ -77,7 +122,7 @@ automatisch goed.
 ## Instellingen
 
 Alles staat in [`config.js`](config.js): locatie, helderheid dag/nacht, maximale fps,
-grootte van de uil en hoe vaak het muisje langskomt.
+grootte van de uil, hoe vaak het muisje langskomt, de Dom, **verjaardagen** en Oranje-wedstrijden.
 
 ## Bestanden
 
@@ -89,6 +134,8 @@ zolderuil/
   js/scene.js     zolder, balk, raam, lucht, lantaarn
   js/owl.js       de uil: onderdelen en tekenwerk
   js/brain.js     behoeftes, dagritme en alle acties
+  js/kalender.js  feestdagen, verjaardagen, gedachten
+  js/props.js     spullen op de balk, slinger, lampjes, vuurwerk
   js/main.js      klok, hoofdlus, dimmen, debug
 ```
 
@@ -102,5 +149,5 @@ zolderuil/
 ## Volgende fases
 
 1. ~~Uil, idle-animaties, slapen/wakker, dag/nacht, lucht en maan~~ ✅
-2. Weer (Open-Meteo), feestdagen, outfits en verjaardagen
+2. ~~Feestdagen, outfits, verjaardagen, de Dom~~ ✅ — nog te doen: weer (Open-Meteo)
 3. Pi: kiosk-modus, autostart, herstart bij een crash, updates via `git pull`
