@@ -24,7 +24,7 @@
   function jump(hours) { simBase = simNow().valueOf() + hours * 3600000; realBase = performance.now(); }
 
   // ---------- scherm ----------
-  let W = 1778, H = 1000, scale = 1, room = null, portrait = false;
+  let W = 1778, H = 1000, scale = 1, room = null, portrait = false, big = 1;
   const forcePortrait = qs.has('staand') || CFG.forceerStaand;
   function resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, CFG.maxPixelRatio || 1);
@@ -38,6 +38,8 @@
     room = UilScene.renderRoom(W, H, scale);
     brain.W = W; brain.H = H;
     portrait = W < H;
+    rig.gesture = portrait ? (CFG.gebaarSterkte || 1.4) : (CFG.gebaarSterkteLiggend || 1);
+    big = portrait ? 1.6 : 1;
     brain.moveLimit = portrait ? W * 0.05 : Math.max(40, Math.min(150, room.layout.win.x - W / 2 - 170));
     brain.owlX = W / 2;
   }
@@ -58,7 +60,7 @@
       if (e.type === 'veertjes') for (let i = 0; i < e.n; i++) spawnFeather(owlPos.x + rand(-80, 80), owlPos.y - rand(100, 250));
       if (e.type === 'bong') { // geluid van de Dom komt van de zijkant binnen
         const side = brain.domKant, x = side < 0 ? 10 : W - 10;
-        particles.push({ type: 'bong', x, y: H * 0.2 + rand(-20, 60), dir: -side, life: 0, max: 1.6, size: rand(40, 52) });
+        particles.push({ type: 'bong', x, y: H * 0.2 + rand(-20, 80), dir: -side, life: 0, max: 1.6, size: rand(44, 56) * big });
         particles.push({ type: 'golf', x: side < 0 ? -20 : W + 20, y: H * 0.3, dir: -side, life: 0, max: 1.4 });
       }
       if (e.type === 'noten') for (let i = 0; i < 5; i++) {
@@ -74,7 +76,7 @@
       zzzTimer -= dt;
       if (zzzTimer <= 0) {
         zzzTimer = rand(2.2, 3.2);
-        particles.push({ type: 'z', x: owlPos.x + 70 * S, y: owlPos.y - 300 * S, life: 0, max: 4, size: rand(26, 36) });
+        particles.push({ type: 'z', x: owlPos.x + 70 * S, y: owlPos.y - 300 * S, life: 0, max: 4, size: rand(26, 36) * big });
       }
     }
     for (const p of particles) {
@@ -108,7 +110,7 @@
           c.beginPath(); c.arc(p.x, p.y, r, p.dir > 0 ? -0.6 : Math.PI - 0.6, p.dir > 0 ? 0.6 : Math.PI + 0.6); c.stroke();
         }
       } else if (p.type === 'noot' || p.type === 'hart') {
-        c.font = `bold ${p.type === 'hart' ? 34 : 38}px ${FONT}`;
+        c.font = `bold ${Math.round((p.type === 'hart' ? 34 : 38) * big)}px ${FONT}`;
         c.fillStyle = p.type === 'hart' ? `rgba(240,70,110,${a})` : `rgba(255,225,150,${a})`;
         c.fillText(p.type === 'hart' ? '♥' : p.ch, p.x, p.y);
       } else if (p.type === 'z') {
@@ -118,7 +120,7 @@
       } else {
         c.save(); c.translate(p.x, p.y); c.rotate(p.rot);
         c.fillStyle = `rgba(${dim ? '150,110,75' : '200,160,115'},${a})`;
-        c.beginPath(); c.ellipse(0, 0, 5, 14, 0, 0, 7); c.fill();
+        c.scale(big, big); c.beginPath(); c.ellipse(0, 0, 5, 14, 0, 0, 7); c.fill();
         c.strokeStyle = `rgba(90,60,35,${a})`; c.lineWidth = 1;
         c.beginPath(); c.moveTo(0, -14); c.lineTo(0, 16); c.stroke();
         c.restore();
@@ -153,28 +155,28 @@
     const droom = b.stijl === 'droom';
     c.save();
     c.globalAlpha = a * (droom ? 0.92 : 1);
-    const fs = portrait ? 32 : 34;
+    const fs = portrait ? 46 : 34;
     c.font = `${droom ? 'italic ' : 'bold '}${fs}px ${FONT}`;
-    const lines = wrap(c, b.text, Math.min(W * 0.78, 560));
+    const lines = wrap(c, b.text, Math.min(W * (portrait ? 0.84 : 0.78), 560));
     const tw = Math.max(...lines.map((l) => c.measureText(l).width));
-    const lh = fs * 1.2, w = tw + 44, h = lines.length * lh + 26;
+    const lh = fs * 1.2, w = tw + fs * 1.3, h = lines.length * lh + fs * 0.75;
     const bx = clamp(x - (droom ? w * 0.3 : 0), 20, W - w - 20), by = Math.max(20, y - h);
     c.translate(bx + w / 2, by + h / 2); c.scale(pop, pop); c.translate(-(bx + w / 2), -(by + h / 2));
-    c.fillStyle = droom ? '#eef2ff' : '#fffaf0'; c.strokeStyle = '#3a2410'; c.lineWidth = 3;
+    c.fillStyle = droom ? '#eef2ff' : '#fffaf0'; c.strokeStyle = '#3a2410'; c.lineWidth = 3 * (portrait ? 1.4 : 1);
     c.beginPath();
     c.roundRect ? c.roundRect(bx, by, w, h, Math.min(28, h / 2)) : c.rect(bx, by, w, h);
     c.fill(); c.stroke();
     const tx = clamp(x, bx + 30, bx + w - 30);
     if (droom) { // denkwolkje met bolletjes
       for (const [dx, dy, r] of [[-10, 18, 10], [-24, 40, 7], [-34, 58, 4.5]]) {
-        c.beginPath(); c.arc(tx + dx, by + h + dy, r, 0, 7); c.fill(); c.stroke();
+        c.beginPath(); c.arc(tx + dx * big, by + h + dy * big, r * big, 0, 7); c.fill(); c.stroke();
       }
     } else {
-      c.beginPath(); c.moveTo(tx - 4, by + h - 2); c.lineTo(tx - 22, by + h + 26); c.lineTo(tx + 22, by + h - 2); c.fill();
-      c.beginPath(); c.moveTo(tx - 4, by + h); c.lineTo(tx - 22, by + h + 26); c.lineTo(tx + 22, by + h); c.stroke();
+      c.beginPath(); c.moveTo(tx - 4, by + h - 2); c.lineTo(tx - 22 * big, by + h + 26 * big); c.lineTo(tx + 22, by + h - 2); c.fill();
+      c.beginPath(); c.moveTo(tx - 4, by + h); c.lineTo(tx - 22 * big, by + h + 26 * big); c.lineTo(tx + 22, by + h); c.stroke();
     }
     c.fillStyle = '#3a2410'; c.textBaseline = 'middle'; c.textAlign = 'center';
-    lines.forEach((l, i) => c.fillText(l, bx + w / 2, by + 13 + lh * (i + 0.5) + 2));
+    lines.forEach((l, i) => c.fillText(l, bx + w / 2, by + fs * 0.375 + lh * (i + 0.5) + 2));
     c.restore();
   }
 
@@ -319,7 +321,7 @@ toetsen: 1 rondkijken  2 kopdraai  3 poetsen  4 rekken
     if (brain.mouse) UilOwl.drawRunningMouse(octx, brain.mouse.x, L.beamY + 2, brain.mouse.dir, t);
     octx.setTransform(1, 0, 0, 1, 0, 0);
     octx.globalCompositeOperation = 'source-atop';
-    octx.fillStyle = `rgba(10,12,32,${0.42 * (1 - dayLight)})`;
+    octx.fillStyle = `rgba(10,12,32,${0.3 * (1 - dayLight)})`;
     octx.fillRect(0, 0, owlCanvas.width, owlCanvas.height);
     octx.globalCompositeOperation = 'source-over';
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);

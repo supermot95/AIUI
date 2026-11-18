@@ -24,6 +24,8 @@
     flyX: 0, flyY: 0,      // positie tijdens het vliegen
   };
 
+  const AMP = new Set(['headTilt', 'lean', 'y', 'headY', 'throat']);
+
   class Rig {
     constructor() {
       this.p = { ...DEFAULTS }; this.t = { ...DEFAULTS }; this.k = {};
@@ -38,7 +40,19 @@
       this.neck = null;      // strik of sjaal
     }
     // Zet doelwaarden; speed = hoe snel (hoger = sneller).
-    set(obj, speed = 4) { for (const key in obj) { this.t[key] = obj[key]; this.k[key] = speed; } }
+    // Gebaren worden versterkt met `gesture` (groter op een klein scherm).
+    set(obj, speed = 4) {
+      const G = this.gesture || 1;
+      for (const key in obj) {
+        let v = obj[key];
+        if (G !== 1) {
+          if (AMP.has(key)) v *= G;
+          else if ((key === 'wingL' || key === 'wingR') && v < 1.2) v = Math.min(v * G, 1.6);
+          else if (key === 'headAngle' && Math.abs(v) < 1.3) v *= Math.min(G, 1.2);
+        }
+        this.t[key] = v; this.k[key] = speed;
+      }
+    }
     snap(obj) { for (const key in obj) { this.t[key] = obj[key]; this.p[key] = obj[key]; } }
     update(dt) {
       for (const key in this.p) {

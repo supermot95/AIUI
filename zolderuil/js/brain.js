@@ -271,7 +271,7 @@
     for (let i = 0; i < 4 && b.lastThoughts.includes(tekst); i++) tekst = pick(pool);
     b.lastThoughts.unshift(tekst); b.lastThoughts.length = Math.min(b.lastThoughts.length, 8);
     o.autoLook = false;
-    o.set({ lookX: 0, lookY: 0, headAngle: rand(-0.2, 0.2), headTilt: rand(-0.15, 0.15) }, 4); yield 0.4;
+    o.set({ eyeL: 1, eyeR: 1, lookX: 0, lookY: 0, headAngle: rand(-0.2, 0.2), headTilt: rand(-0.15, 0.15) }, 4); yield 0.4;
     const dur = 2.2 + tekst.length * 0.07;
     b.say(tekst, dur);
     o.set({ beak: 0.25 }, 12); yield 0.15; o.set({ beak: 0 }, 12);
@@ -450,6 +450,9 @@
     force(name, arg) {
       if (!A[name]) return;
       this.spider = null; this.o.snap({ cross: 0 });
+      if (!['muisKijken', 'domKlok', 'kwartier', 'eenOogOpen', 'dommelen', 'slapen', 'droom', 'inslapen'].includes(name) && this.o.asleep) {
+        this.o.asleep = false; this.o.set(AWAKE, 4);
+      }
       this.o.flying = false; this.o.visible = true; this.o.carrying = false; this.busy = false;
       this.o.snap({ flyX: 0, flyY: 0 });
       if (!['muisKijken', 'domKlok', 'kwartier'].includes(name) && this.mode === 'slaap' && !['eenOogOpen', 'dommelen', 'slapen', 'droom'].includes(name)) {

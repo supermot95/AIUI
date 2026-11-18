@@ -20,16 +20,16 @@
   // Alles wordt getekend in een wereld van 1000 eenheden hoog; de breedte
   // volgt de beeldverhouding van het scherm.
   function layout(W, H) {
-    if (W < H) { // staand scherm: uil groot en laag, rond raampje rechtsboven
-      const w = W * 0.36;
-      const win = { cx: W * 0.73, cy: 0, w, h: w * 1.2 };
-      win.x = win.cx - w / 2; win.y = 118; win.cy = win.y + win.h / 2;
+    if (W < H) { // staand scherm: uil schermvullend, raampje rechtsboven in de hoek
+      const w = W * 0.3;
+      const win = { cx: W * 0.79, cy: 0, w, h: w * 1.12 };
+      win.x = win.cx - w / 2; win.y = 22; win.cy = win.y + win.h / 2;
       return {
         W, H, portrait: true,
-        beamY: H * 0.86, beamH: 74,
+        beamY: H * 0.9, beamH: 70,
         win,
-        postL: W * 0.035, postR: W * 0.965, postW: 52,
-        lantern: { x: W * 0.17, y: H * 0.27 },
+        postL: W * 0.03, postR: W * 0.97, postW: 44,
+        lantern: { x: W * 0.13, y: H * 0.13 },
       };
     }
     const win = { cx: W * 0.79, cy: H * 0.3, w: Math.min(290, W * 0.17), h: 330 };

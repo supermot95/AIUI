@@ -8,7 +8,7 @@ window.UIL_CONFIG = {
 
   // Helderheid van het scherm (0..1). 's Nachts gedimd zodat de
   // buren niet in een lichtbak kijken; overdag zo fel mogelijk.
-  helderheid: { dag: 1.0, nacht: 0.45 },
+  helderheid: { dag: 1.0, nacht: 0.6 },
 
   // Laat het hele beeld heel langzaam een paar pixels verschuiven,
   // tegen inbranden van het scherm.
@@ -23,7 +23,12 @@ window.UIL_CONFIG = {
   // Hoe groot de uil is, als deel van de schermhoogte.
   // De indeling past zich vanzelf aan: staand (portrait) of liggend scherm.
   uilGrootte: 0.46,        // liggend scherm
-  uilGrootteStaand: 0.6,   // staand scherm: lekker groot
+  uilGrootteStaand: 0.72,  // staand scherm: bijna schermvullend
+
+  // Hoe groot de gebaren zijn (kop scheef, kantelen, hupjes, vleugels).
+  // Op een klein scherm moeten ze groot zijn om op te vallen.
+  gebaarSterkte: 1.4,          // staand scherm
+  gebaarSterkteLiggend: 1.0,   // liggend scherm
 
   // Altijd als staand scherm tonen (ook in een liggend browservenster).
   // Op de Pi zelf draai je het beeld via het besturingssysteem (zie README).

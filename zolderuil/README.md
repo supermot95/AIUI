@@ -108,9 +108,10 @@ Testen kan met bijvoorbeeld `?datum=2026-12-05&tijd=20:00` (pakjesavond) of
 
 De indeling past zich vanzelf aan de beeldverhouding aan:
 
-- **Staand (portrait)**: de uil is groot en zit laag op de balk, met een raampje rechtsboven
-  achter zijn kop. Zijn grootte stel je in met `uilGrootteStaand` in `config.js`
-  (standaard 0.6 van de schermhoogte).
+- **Staand (portrait)**: de uil vult bijna het hele scherm (`uilGrootteStaand`, standaard
+  0.72 van de schermhoogte), met een raampje rechtsboven in de hoek. Omdat het scherm klein is,
+  worden de gebaren versterkt (`gebaarSterkte`, standaard 1.4×): kop scheef houden, kantelen,
+  hupjes, knikken en vleugelgebaren zijn groter. Tekstballonnen, BONGs, nootjes en zzz zijn ook groter.
 - **Liggend**: de uil zit in het midden en het raam staat ernaast (`uilGrootte`).
 
 Op je Mac kun je staand testen met `?staand`, of door je browservenster smal te maken.

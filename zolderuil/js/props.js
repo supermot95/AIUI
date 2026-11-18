@@ -128,7 +128,7 @@
     const list = [...kal.props].filter((p) => DRAW[p]);
     const portrait = W < 1000;
     const ps = portrait ? 0.85 : Math.min(1.25, S * 0.95);
-    const off = portrait ? W / 2 - 62 : 115 * S + 70 * ps;
+    const off = portrait ? W / 2 - 56 : 115 * S + 70 * ps;
     return list.map((name, i) => ({
       name, ps,
       x: owlCx + (i % 2 === 0 ? 1 : -1) * (off + Math.floor(i / 2) * 120 * ps) * (name === 'lampion' ? 0.85 : 1),
@@ -181,7 +181,7 @@
 
   // ---------- vlaggetjesslinger ----------
   function drawBunting(ctx, L, slinger, t) {
-    const x0 = L.postL + L.postW / 2, x1 = L.postR - L.postW / 2, y0 = 100, sag = L.portrait ? 40 : 60;
+    const x0 = L.postL + L.postW / 2, x1 = L.postR - L.postW / 2, y0 = L.portrait ? 30 : 100, sag = L.portrait ? 30 : 60;
     let letters = [...slinger.tekst];
     let fw = (x1 - x0 - 20) / letters.length;
     if (fw < 24) { letters = [...slinger.tekst.replace(/^HOERA /, '')]; fw = (x1 - x0 - 20) / letters.length; }
